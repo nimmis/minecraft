@@ -1,0 +1,73 @@
+#!/usr/bin/perl 
+#
+# minecraft downloader
+#
+# version 0.1
+#
+# (c) 2016 nimmis <kjell.havneskold@gmail.com>
+#
+
+
+use Data::Dumper;
+use JSON; 
+use strict ;
+
+my $req_version = $ARGV[0] ;
+if (not defined $req_version ) {
+  print "mc_dl <minecraft version"
+  print "
+  print "enter minecraft version number or latest for latest version\n" ;
+  exit 1 ;
+}
+
+print "searching for $req_version\n" ;
+
+#
+# use new path for downloading version info
+#
+
+my $data = `curl -s https://launchermeta.mojang.com/mc/game/version_manifest.json` ;
+my $json = decode_json($data) ;
+
+#
+# if latest set version to actual version number
+#
+
+if ($req_version eq 'latest') {
+  $req_version = $json->{'latest'}{'release'} ;
+  print "latest version is $req_version\n" ;
+}
+
+#
+# find release with the requested version
+#
+
+my $vers =$json->{'versions'} ;
+foreach my $ver  (@$vers) {
+  if ( $ver->{'type'} eq "release" ) {
+     if ( $ver->{'id'} eq $req_version ) {
+        print "found requested version, determine donwload url\n" ;
+        my $json_url = $ver->{'url'} ;
+        print "data for $req_version is at $json_url\n" ;
+	#
+	# get json information about version
+	#
+        $data= `curl -s $json_url` ;
+	$json= decode_json($data) ;
+	#
+	# get download path for server version
+	#
+        my $server_url=$json->{'downloads'}{'server'}{'url'} ;
+
+        print "Downloading server.jar to mincrate-server-$req_version.jar\n" ;
+        `curl -o mincrate-server-$req_version.jar -s $server_url` ;
+	exit 0 ;
+     }
+  }
+}
+#
+# fail, requested version on in list
+#
+
+print "Version $req_version not found\n" ;
+exit 1
