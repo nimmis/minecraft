@@ -3,6 +3,8 @@ FROM nimmis/alpine-java
 MAINTAINER nimmis <kjell.havneskold@gmail.com>
 
 COPY bin/mc_dl /usr/local/bin
+COPY minecraft_server /usr/local/bin
+
 #COPY spigot_build /etc/run_always/
 #COPY  apache.sh /etc/service/apache/run
 
